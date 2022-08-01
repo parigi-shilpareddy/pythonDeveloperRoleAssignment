@@ -2,10 +2,12 @@ import sqlite3
 connection = sqlite3.connect('quotes.db')
 cursor = connection.cursor()
 
+print("Total No of quotations:")
 cursor.execute("SELECT * FROM Quote")
 print(len(cursor.fetchall())) #output = 100
 
 #cursor.executemany(sqlite_insert_with_param, multiple_tags)
+print("Total no of quotations by Albert Einstein")
 cursor.execute("SELECT * FROM Quote WHERE Author = 'Albert Einstein'")
 print(len(cursor.fetchall())) #output = 10
 
@@ -38,3 +40,19 @@ for row in data:
     print(row)
 # close our connection
 connection.close()
+
+#outputs
+#Total No of quotations
+#100
+#Total no of quotations by Albert Einstein
+#10
+#The maximum no of tags on a quotation is:
+#8
+#The minimum no of tags on a quotation is:
+#1
+#The average no of tags on a quotation is:
+#2.35
+#(17, "“The opposite of love is not hate, it's indifference. The opposite of art is not ugliness, it's indifference. The opposite of faith is not heresy, it's indifference. And the opposite of life is not death, it's indifference.”", 'Elie Wiesel', 'activism apathy hate indifference inspirational love opposite philosophy', 8)
+#(77, "“You may say I'm a dreamer, but I'm not the only one. I hope someday you'll join us. And the world will live as one.”", 'John Lennon', 'beatles connection dreamers dreaming dreams hope inspirational peace', 8)
+#(97, '“You have to write the book that wants to be written. And if the book will be too difficult for grown-ups, then you write it for children.”', "Madeleine L'Engle", 'books children difficult grown-ups write writers writing', 7)
+#(11, "“This life is what you make it. No matter what, you're going to mess up sometimes, it's a universal truth. But the good part is you get to decide how you're going to mess it up. Girls will be your friends - they'll act like it anyway. But just remember, some come, some go. The ones that stay with you through everything - they're your true best friends. Don't let go of them. Also remember, sisters make the best friends in the world. As for lovers, well, they'll come and go too. And baby, I hate to say it, most of them - actually pretty much all of them are going to break your heart, but you can't give up because if you give up, you'll never find your soulmate. You'll never find that half who makes you whole and that goes for everything. Just because you fail once, doesn't mean you're gonna fail at everything. Keep trying, hold on, and always, always, always believe in yourself, because if you don't, then who will, sweetie? So keep your head high, keep your chin up, and most importantly, keep smiling, because life's a beautiful thing and there's so much to smile about.”", 'Marilyn Monroe', 'friends heartbreak inspirational life love sisters', 6)
