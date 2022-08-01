@@ -53,7 +53,7 @@ connection.close()
 #1
 #The average no of tags on a quotation is:
 #2.35
-#Top N authors who authored and their Quotations
+#Top N authors who authored and their Quotations where n = 5
 #(17, "“The opposite of love is not hate, it's indifference. The opposite of art is not ugliness, it's indifference. The opposite of faith is not heresy, it's indifference. And the opposite of life is not death, it's indifference.”", 'Elie Wiesel', 'activism apathy hate indifference inspirational love opposite philosophy', 8)
 #(77, "“You may say I'm a dreamer, but I'm not the only one. I hope someday you'll join us. And the world will live as one.”", 'John Lennon', 'beatles connection dreamers dreaming dreams hope inspirational peace', 8)
 #(97, '“You have to write the book that wants to be written. And if the book will be too difficult for grown-ups, then you write it for children.”', "Madeleine L'Engle", 'books children difficult grown-ups write writers writing', 7)
