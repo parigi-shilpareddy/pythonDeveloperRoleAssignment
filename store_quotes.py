@@ -90,7 +90,7 @@ cursor.execute(avg_tag_count)
 print("The average no of tags on a quotation is:")
 print(cursor.fetchone()[0]) #output = 2.35
 
-#Given a number N return top N authors who authored the maximum number of quotations sorted in descending order of no. of quotes
+#Given a number N return top N authors who authored the maximum number of tags on quotations sorted in descending order of no. of tags
 data = cursor.execute("""SELECT Quote.Qid,Quote.QuoteName,Quote.Author,Quote.Tags,Tags.tagCount
            FROM Quote
            INNER JOIN Tags 
@@ -98,6 +98,14 @@ data = cursor.execute("""SELECT Quote.Qid,Quote.QuoteName,Quote.Author,Quote.Tag
 
 for row in data:
     print(row)
+
+#Given a number N return top N authors who authored the maximum number of quotations sorted in descending order of no. of quotes
+print("top N authors who authored the maximum number of quotations sorted in descending order of no. of quotes  where n = 5")
+quotes = cursor.execute('''SELECT Author,COUNT(*) AS quoteCount  FROM Quote GROUP BY Quote.Author ORDER BY quoteCount DESC LIMIT 5''')
+for row in quotes:
+    print(row)
+
+
 
 # close our connection
 connection.close()
