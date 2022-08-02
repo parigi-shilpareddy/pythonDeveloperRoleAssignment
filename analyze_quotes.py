@@ -5,28 +5,36 @@ cursor = connection.cursor()
 print("Total No of quotations:")
 cursor.execute("SELECT * FROM Quote")
 print(len(cursor.fetchall())) #output = 100
+#or
+TotalQuotations = cursor.execute('''SELECT COUNT(*) FROM Quote''')
+for row in TotalQuotations:
+    print(row) #output = 100
 
-#cursor.executemany(sqlite_insert_with_param, multiple_tags)
+
+
 print("Total no of quotations by Albert Einstein")
 cursor.execute("SELECT * FROM Quote WHERE Author = 'Albert Einstein'")
 print(len(cursor.fetchall())) #output = 10
+#or
+AuthorQuotationsCount = cursor.execute('''SELECT Author,COUNT(*) FROM Quote WHERE Author = "Albert Einstein"''')
+for row in AuthorQuotationsCount:
+    print(row) #output=('Albert Einstein', 10)
+
 
 max_tag_count = "SELECT MAX(tagCount) FROM Tags"
-  
 cursor.execute(max_tag_count)
-  
 print("The maximum no of tags on a quotation is:")
 print(cursor.fetchone()[0]) #output = 8
+
+
 min_tag_count = "SELECT MIN(tagCount) from Tags"
-  
 cursor.execute(min_tag_count)
-  
 print("The minimum no of tags on a quotation is:")
 print(cursor.fetchone()[0]) #output = 1
+
+
 avg_tag_count = "select avg(tagCount) from Tags"
-  
 cursor.execute(avg_tag_count)
-  
 print("The average no of tags on a quotation is:")
 print(cursor.fetchone()[0]) #output = 2.35
 
