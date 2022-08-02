@@ -47,12 +47,14 @@ cursor.executemany(sqlite_insert_with_param_authors, multiple_authors)
 
 multiple_tags = []
 for i in range(len(data['quotes'])):
+    tagCount = len(data['quotes'][i]['tags'])
     tag = " ".join(str(elem) for elem in data['quotes'][i]['tags'])
-    data_tuple = (i+200,tag,data['quotes'][i]['author'])
+    data_tuple = (i+200,tag,data['quotes'][i]['author'],tagCount)
     multiple_tags.append(data_tuple)
 
 sqlite_insert_with_param = """INSERT INTO Tags
-                       VALUES (?, ?, ?);"""   
+                       VALUES (?, ?, ?,?);"""  
+cursor.executemany(sqlite_insert_with_param, multiple_tags)
 
 authors = connection.execute("SELECT * from Authors")
 quotes = connection.execute("SELECT * from Quote")
@@ -73,7 +75,6 @@ for row in TotalQuotations:
     print(row) #output = 100
 
 
-#cursor.executemany(sqlite_insert_with_param, multiple_tags)
 cursor.execute("SELECT * FROM Quote WHERE Author = 'Albert Einstein'")
 print(len(cursor.fetchall())) #output = 10
                     #or
