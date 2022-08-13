@@ -47,6 +47,12 @@ def get_data_by_limit_by_author():
     result_after_performing_query = cursor.execute(string_query)
     for each in result_after_performing_query:
         print(each)
+    # output
+    # ('Albert Einstein', 10)
+    # ('J K Rowling', 9)
+    # ('Marilyn Monroe', 7)
+    # ('Mark Twain', 6)
+    # ('Dr Seuss', 6)
 
 
 def performing_queries():
