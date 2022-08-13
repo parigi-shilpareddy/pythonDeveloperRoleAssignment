@@ -1,56 +1,59 @@
-from operator import ge
+# Importing Sqlite3 Module
 import sqlite3
-connection = sqlite3.connect('quotes.db')
-cursor = connection.cursor()
 
-def GetTotalQuotatins():
-    TotalQuotations = cursor.execute('''SELECT COUNT(*) FROM Quote''')
-    for row in TotalQuotations:
-        print(row) #output = 100
+def connecting_to_database():
+    connection = sqlite3.connect('quotes.db')
+    return connection.cursor()
 
-def getCountOfQuotationsByAlbertEienstein():
-    AuthorQuotationsCount = cursor.execute('''SELECT Author,COUNT(*) FROM Quote WHERE Author = "Albert Einstein"''')
-    for row in AuthorQuotationsCount:
-        print(row) #output=('Albert Einstein', 10)
+def get_total_quotations():
+    cursor = connecting_to_database()
+    total_quotations = cursor.execute('''SELECT COUNT(*) FROM quote''')
+    for count in total_quotations:
+        print(count) #output (100,)
 
-def getMinMaxAvgCountOfTags():
-#maximum minimum average number of tags on a quote
-    max_min_avg_tag_count = "SELECT MAX(TagsCount),MIN(TagsCount),AVG(TagsCount) FROM Quote"
-    for count in max_min_avg_tag_count:
-        print(count) #output (8,1,2.35)
+def get_quotations_by_author():
+    cursor = connecting_to_database()
+    author_name = input("enter author name: ")
+    query = '''SELECT author.author_name,COUNT(*) FROM author JOIN quote WHERE quote.author_id = author.id AND author.author_name ={}'''
+    string_query = query.format(author_name)
+    total_quotations_by_author = cursor.execute(string_query)
+    for count in total_quotations_by_author:
+        print(count) #output ('Albert Einstein', 10)
+    
+def get_min_max_avg_count_tags():
+    cursor = connecting_to_database()
+    query = cursor.execute('''
+        SELECT MAX(total_tags),MIN(total_tags),AVG(total_tags) FROM (
+            SELECT COUNT(tag_id) AS total_tags
+            FROM quotes_tags
+            GROUP BY quote_id
+        )
+    ''')
+    for max_min_avg in query:
+        print(max_min_avg) #output (8, 1, 2.3917525773195876)
+    
+def get_data_by_limit_by_author():
+    cursor = connecting_to_database()
+    limit_value = input("Enter the limit value")
+    query = '''
+        SELECT author.author_name,COUNT(*) AS quotes_count 
+        FROM quote JOIN author 
+        WHERE quote.author_id = author.id 
+        GROUP BY quote.author_id 
+        ORDER BY quotes_count DESC 
+        LIMIT {}
+    '''
+    string_query = query.format(limit_value)
+    result_after_performing_query = cursor.execute(string_query)
+    for each in result_after_performing_query:
+        print(each)
 
-def getDataByLimitByAuthor():
-#Given a number N return top N authors who authored the maximum number of quotations sorted in descending order of no. of quotes
-    print("top N authors who authored the maximum number of quotations sorted in descending order of no. of quotes  where n = 5")
-    quotes = cursor.execute('''SELECT Author,COUNT(*) AS quoteCount  FROM Quote GROUP BY Quote.Author ORDER BY quoteCount DESC LIMIT 5''')
-    for row in quotes:
-        print(row)
 
-def main():
-    GetTotalQuotatins()
-    getCountOfQuotationsByAlbertEienstein()
-    getMinMaxAvgCountOfTags()
-    getDataByLimitByAuthor()
-
-main()
-# close our connection
-connection.close()
-
-#outputs
-
-#Total No of quotations
-#100
-
-#Total no of quotations by Albert Einstein
-#10
-
-#maximum minimum average number of tags on a quote
-#(8,1,2.35)
+def performing_queries():
+    get_total_quotations()
+    get_quotations_by_author()
+    get_min_max_avg_count_tags()
+    get_data_by_limit_by_author()
 
 
-#Given a number N return top N authors who authored the maximum number of quotations sorted in descending order of no. of quotes  where n = 5
-#('Albert Einstein', 10)
-#('J.K. Rowling', 9)
-#('Marilyn Monroe', 7)
-#('Mark Twain', 6)
-#('Dr. Seuss', 6)
+performing_queries()
