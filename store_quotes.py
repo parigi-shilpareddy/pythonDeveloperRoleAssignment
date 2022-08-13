@@ -1,107 +1,146 @@
+from multiprocessing import connection
 import sqlite3
-import json                                      
+import json 
 
-connection = sqlite3.connect('store.db')
-cursor = connection.cursor()
+def get_json_data():
+    with open('quotes.json','r') as read_file:
+        json_file = json.loads(read_file.read())
+    return json_file
 
+def connecting_to_database():
+    return sqlite3.connect('quotes.db')
 
-with open("/Users\parig\VsCodePython\quotes.json") as f:
-    data = json.load(f)
-    
+def create_table(table,table_name):
+    connection = connecting_to_database()
+    cursor = connection.cursor()
+    drop_table = "DROP TABLE IF EXISTS {}"
+    cursor.execute(drop_table.format(table_name))
+    cursor.execute('''PRAGMA foreign_keys = ON''')
+    cursor.execute(table)
+    connection.commit()
+    connection.close()
 
-authors_table = '''
-               CREATE TABLE authors(
-              id INTEGER NOT NULL PRIMARY KEY,
-               author VARCHAR(250),
-               born VARCHAR(300),
-               reference VARCHAR(300)
-               );
-               '''
-quotes_table = ''' CREATE TABLE Quote
-            (Qid INT PRIMARY KEY     NOT NULL,
-             QuoteName TEXT    NOT NULL,
-               Author TEXT     NOT NULL,
-            TagsCount  INT);
-            '''
+def creating_authors_table():
+    author_table = '''CREATE TABLE author (
+        id INT NOT NULL PRIMARY KEY,
+        author_name VARCHAR(250),
+        born VARCHAR(250),
+        reference VARCHAR(250)
+    )'''
+    create_table(author_table,"author")
 
-tags_table = '''CREATE TABLE Tags
-              (id INTEGER PRIMARY KEY AUTOINCREMENT,
-               tag_name VARCHAR(250),
-               quote_id INTEGER,
-               FOREIGN KEY (quote_id) REFERENCES Quote(Qid) 
-               ON DELETE CASCADE)'''
+def creating_quotes_table():
+    quotes_table = '''CREATE TABLE quote (
+        id INT NOT NULL PRIMARY KEY,
+        quote VARCHAR(300),
+        author_id INT,
+        FOREIGN KEY (author_id) REFERENCES author(id)
+        ON DELETE CASCADE
+    )'''
+    create_table(quotes_table,"quote")
 
+def creating_tags_table():
+    tags_table = '''CREATE TABLE tags (
+        id INT NOT NULL PRIMARY KEY,
+        tag VARCHAR(250)
+    );'''
+    create_table(tags_table,"tags")
 
-connection.execute(authors_table)
-connection.execute(quotes_table)
-connection.execute(tags_table)
+def creating_quotes_tags_table():
+    quotes_tags_table = '''CREATE TABLE quotes_tags (
+        quote_id INT,
+        tag_id INT,
+        PRIMARY KEY (quote_id,tag_id),
+        FOREIGN KEY (quote_id) REFERENCES quote(id)
+        ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id)
+        ON DELETE CASCADE
+    )'''
+    create_table(quotes_tags_table,"quotes_tags")
 
-multiple_quotes = []
-for i in range(len(data['quotes'])):
-    tag_count=len(data['quotes'][i]['tags'])
-    data_tuple = (i+1,data['quotes'][i]['quote'],data['quotes'][i]['author'],tag_count)
-    multiple_quotes.append(data_tuple)
-
-sqlite_insert_with_param = """INSERT INTO Quote
-                             VALUES (?, ?, ?, ?);"""
-cursor.executemany(sqlite_insert_with_param, multiple_quotes)
-
-multiple_authors = []
-for i in range(len(data['authors'])):
-    data_tuple = (i+100,data['authors'][i]['name'],data['authors'][i]['born'],data['authors'][i]['reference'])
-    multiple_authors.append(data_tuple)
-
-sqlite_insert_with_param_authors = """INSERT INTO Authors
-                        VALUES (?, ?, ?,?);"""
-cursor.executemany(sqlite_insert_with_param_authors, multiple_authors)
-
-
-multiple_tags = []
-for i in range(len(data['quotes'])):
-    tag=data['quotes'][i]['tags']
-    for each in tag:
-        data_tuple = [each,i+1]
-        multiple_tags.append(data_tuple)
-sqlite_insert_with_param_authors = """INSERT INTO Tags(tag_name,quote_id)
-                             VALUES (?,?);"""
-cursor.executemany(sqlite_insert_with_param_authors, multiple_tags)
+def insert_values_into_table(query_statement,multiple_data):
+    connection = connecting_to_database()
+    cursor = connection.cursor()
+    cursor.executemany(query_statement,multiple_data)
+    connection.commit()
+    connection.close()
 
 
+def insert_values_into_authors_table(authors_list):
+    id = 0 
+    multiple_authors_data = []
+    for each in authors_list:
+        id += 1
+        data_tuple = (id,each['name'],each['born'],each['reference'])
+        multiple_authors_data.append(data_tuple)
+    query_statement = '''INSERT INTO author VALUES (?,?,?,?);'''
+    insert_values_into_table(query_statement,multiple_authors_data)
+
+def inserting_values_into_quotes_table(quotes_list,authors_new_list):
+    id = 0 
+    multiple_quotes_data = []
+    for each_quote in quotes_list:
+        id += 1 
+        author_id = authors_new_list.index(each_quote['author']) + 1 
+        data_tuple = (id,each_quote['quote'],author_id)
+        multiple_quotes_data.append(data_tuple)
+    query_statement = '''INSERT INTO quote VALUES (?,?,?);'''
+    insert_values_into_table(query_statement,multiple_quotes_data)
+
+def inserting_values_into_tags_table(tags_list):
+    id = 0 
+    multiple_tags_data = []
+    for each_tag in tags_list:
+        id += 1 
+        data_tuple = (id,each_tag)
+        multiple_tags_data.append(data_tuple)
+    query_statement = '''INSERT INTO tags VALUES (?,?);'''
+    insert_values_into_table(query_statement,multiple_tags_data)
+
+def inserting_values_quotes_tags_table(quotes_list,tags_list):
+    quote_id = 0 
+    multiple_tag_quote_data = []
+    for each_quote in quotes_list:
+        quote_id += 1
+        for tag in each_quote['tags']:
+            tag_id = tags_list.index(tag) + 1 
+            data_tuple = (quote_id,tag_id)
+            multiple_tag_quote_data.append(data_tuple)
+    query_statement = '''INSERT INTO quotes_tags VALUES (?,?);'''
+    insert_values_into_table(query_statement,multiple_tag_quote_data)
 
 
-authors = connection.execute("SELECT * from Authors")
-quotes = connection.execute("SELECT * from Quote")
-tags = connection.execute("SELECT * from Tags")
+def get_new_authors_list(quotes_list):
+    authors = []
+    for each_author in quotes_list:
+        name = each_author['author']
+        if name not in authors:
+            authors.append(name)
+    return authors
 
-for row in quotes:
-    print(row)
-for row in authors:
-    print(row)
-for row in tags:
-    print(row)
+def get_tags_list(quotes_list):
+    tags_list = []
+    for each_quote in quotes_list:
+        for tag in each_quote['tags']:
+            if tag not in tags_list:
+                tags_list.append(tag)
+    return tags_list
 
+def getting_data():
+    quotes_authors_data = get_json_data()
+    authors_new_list = get_new_authors_list(quotes_authors_data['quotes'])
+    tags_list = get_tags_list(quotes_authors_data['quotes'])
+    insert_values_into_authors_table(quotes_authors_data['authors'])
+    inserting_values_into_quotes_table(quotes_authors_data['quotes'],authors_new_list)
+    inserting_values_into_tags_table(tags_list)
+    inserting_values_quotes_tags_table(quotes_authors_data['quotes'],tags_list)
 
-TotalQuotations = cursor.execute('''SELECT COUNT(*) FROM Quote''')
-for row in TotalQuotations:
-    print(row) #output = 100
+def main():
+    creating_authors_table()
+    creating_quotes_table()
+    creating_tags_table()
+    creating_quotes_tags_table()
+    getting_data()
 
+main()
 
-AuthorQuotationsCount = cursor.execute('''SELECT Author,COUNT(*) FROM Quote WHERE Author = "Albert Einstein"''')
-for row in AuthorQuotationsCount:
-    print(row) #output=('Albert Einstein', 10)
-
-#maximum minimum average number of tags on a quote
-max_min_avg_tag_count = "SELECT MAX(TagsCount),MIN(TagsCount),AVG(TagsCount) FROM Quote"
-for count in max_min_avg_tag_count:
-    print(count) #output (8,1,2.35)
-
-#Given a number N return top N authors who authored the maximum number of quotations sorted in descending order of no. of quotes
-print("top N authors who authored the maximum number of quotations sorted in descending order of no. of quotes  where n = 5")
-quotes = cursor.execute('''SELECT Author,COUNT(*) AS quoteCount  FROM Quote GROUP BY Quote.Author ORDER BY quoteCount DESC LIMIT 5''')
-for row in quotes:
-    print(row)
-
-
-
-# close our connection
-connection.close()
